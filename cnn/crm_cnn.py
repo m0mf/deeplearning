@@ -46,13 +46,11 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropou
 
 # kernel size는 input shape 을 확인 해서 설정 해야 함 kernel size <= input shape의 (height * width)
 model = Sequential([
-    Conv2D(32, kernel_size=(3, 3), input_shape=(3, 6, 1), strides=(1,3), padding='same'),  # 입력: 3x6
-    ELU(alpha=1.0),
+    Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 6, 1), strides=(1,3), padding='same'),  # 입력: 3x6
     MaxPooling2D(pool_size=(1, 2)),  # 시간 축(pooling 너비) 축소
     Dropout(0.2),
 
-    Conv2D(64, kernel_size=(3, 1), padding='same'),
-    ELU(alpha=1.0),
+    Conv2D(64, kernel_size=(3, 1), activation='relu', padding='same'),
     MaxPooling2D(pool_size=(3, 1)),
     Dropout(0.2),
 
@@ -70,7 +68,12 @@ model.compile(optimizer='adam',
 
 model.summary()
 
-model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2)
+from tensorflow.keras.callbacks import EarlyStopping
+
+# epochs=100 설정 하고 데이터 셋이 작기 때문에 과적합을 방지 하기 위해서
+early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+
+model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.2, callbacks=[early_stop])
 
 
 # 평가
@@ -80,42 +83,49 @@ print(f"테스트 정확도: {acc:.2f}")
 
 # 4. 예측
 
-# x_sample = np.array(
-#     [
-#         scaler.transform(np.array([0, 0, 0, 0, 0, 1]).reshape(-1, 1)),
-#         np.array([0, 0, 0, 0, 0, 0.034]).reshape(-1, 1),
-#         np.array([0, 0, 0, 0, 0, 0.116]).reshape(-1, 1),
-#     ]).reshape(-1,3,6,1) # 이탈 고객
+x_sample1 = np.array(
+    [
+        scaler.transform(np.array([0, 0, 0, 0, 0, 1]).reshape(-1, 1)),
+        np.array([0, 0, 0, 0, 0, 0.034]).reshape(-1, 1),
+        np.array([0, 0, 0, 0, 0, 0.116]).reshape(-1, 1),
+    ]).reshape(-1,3,6,1) # 이탈 고객
 
-# x_sample = np.array(
-#     [
-#         scaler.transform(np.array([0, 0, 0, 0, 0, 1]).reshape(-1, 1)),
-#         np.array([0, 0, 0, 0, 0, 1]).reshape(-1, 1),
-#         np.array([0, 0, 0, 0, 0, 0.94]).reshape(-1, 1),
-#     ]).reshape(-1,3,6,1) # 잔류 고객
+x_sample2 = np.array(
+    [
+        scaler.transform(np.array([0, 0, 0, 0, 0, 1]).reshape(-1, 1)),
+        np.array([0, 0, 0, 0, 0, 1]).reshape(-1, 1),
+        np.array([0, 0, 0, 0, 0, 0.94]).reshape(-1, 1),
+    ]).reshape(-1,3,6,1) # 잔류 고객
 
-# x_sample = np.array([
-#     scaler.transform(np.array([0, 1, 1, 1, 1, 1]).reshape(-1, 1)),
-#     np.array([0, 0.764, 0.865, 0.885, 0.658, 1]).reshape(-1, 1),
-#     np.array([0, 0.708, 0.768, 0.822, 0.882, 0.94]).reshape(-1, 1),
-# ]).reshape(-1,3,6,1) # 잔류 고객
+x_sample3 = np.array([
+    scaler.transform(np.array([0, 1, 1, 1, 1, 1]).reshape(-1, 1)),
+    np.array([0, 0.764, 0.865, 0.885, 0.658, 1]).reshape(-1, 1),
+    np.array([0, 0.708, 0.768, 0.822, 0.882, 0.94]).reshape(-1, 1),
+]).reshape(-1,3,6,1) # 잔류 고객
 
-# x_sample = np.array([
-#     scaler.transform(np.array([0, 0, 0, 1, 1, 1]).reshape(-1, 1)),
-#     np.array([0, 0, 0, 0.845, 1, 0.817]).reshape(-1, 1),
-#     np.array([0, 0, 0, 0.294, 0.648, 0.768]).reshape(-1, 1),
-# ]).reshape(-1,3,6,1) # 거래 주기가 긴 고객 -> 2024-06, 2024-12, 2025-02 거래 -> 잔류 고객
+x_sample4 = np.array([
+    scaler.transform(np.array([0, 0, 0, 1, 1, 1]).reshape(-1, 1)),
+    np.array([0, 0, 0, 0.845, 1, 0.817]).reshape(-1, 1),
+    np.array([0, 0, 0, 0.294, 0.648, 0.768]).reshape(-1, 1),
+]).reshape(-1,3,6,1) # 거래 주기가 긴 고객 -> 2024-06, 2024-12, 2025-02 거래 -> 잔류 고객
 
-x_sample = np.array([
+x_sample5 = np.array([
     scaler.transform(np.array([0, 0, 1, 1, 1, 1]).reshape(-1, 1)),
     np.array([0, 0, 0.5, 1, 0.148, 0.108]).reshape(-1, 1),
     np.array([0, 0, 0.59, 0.648, 0.708, 0.768]).reshape(-1, 1),
 ]).reshape(-1,3,6,1) # 이탈 고객
 
-y_pred_proba = model.predict(x_sample)
-y_pred = (y_pred_proba > 0.5).astype(int)
+y_pred_proba1 = model.predict(x_sample1)
+y_pred_proba2 = model.predict(x_sample2)
+y_pred_proba3 = model.predict(x_sample3)
+y_pred_proba4 = model.predict(x_sample4)
+y_pred_proba5 = model.predict(x_sample5)
 
-print(y_pred_proba)
+print(f'1번 이탈 고객 => 예측값: {y_pred_proba1}')
+print(f'2번 잔류 고객 => 예측값: {y_pred_proba2}')
+print(f'3번 잔류 고객 => 예측값: {y_pred_proba3}')
+print(f'4번 잔류 고객 => 예측값: {y_pred_proba4}')
+print(f'5번 이탈 고객 => 예측값: {y_pred_proba5}')
 
 # 정확도 확인
 # from sklearn.metrics import classification_report
