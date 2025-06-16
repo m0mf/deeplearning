@@ -8,8 +8,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 # 최근 6개월 실적, 거래 횟수 데이터
 n_features = 2     # 거래 횟수, 실적
 n_months = 6       # 최근 6개월
-# sales => 고객별 현재값/최대값 으로 비율 값으로 계산
-# days => 202401 기준 으로 (거래일 - 202401) / (현재 - 202401) 으로 비율 값으로 계산
+
 # data = pd.read_csv('D:/workspace/arches/test/cnn_test_data2.csv',header=None, names=['companyCode', 'rn', 'frequency', 'sales'])
 # data = pd.read_csv('D:/workspace/arches/test/cnn_test_data3.csv',header=None, names=['companyCode', 'rn', 'frequency', 'sales', 'days'])
 data = pd.read_csv('D:/workspace/arches/test/cnn_test_data4.csv',header=None, names=['companyCode', 'rn', 'frequency', 'sales', 'days'])
@@ -18,7 +17,11 @@ data = pd.read_csv('D:/workspace/arches/test/cnn_test_data4.csv',header=None, na
 # scaler = StandardScaler() # (평균 0, 표준 편차 1)의 정규 분포로 정규화(x - 평균 / 표준 편차)
 scaler = MinMaxScaler() # 비율 값으로 계산
 data['frequency'] = scaler.fit_transform(data['frequency'].values.reshape(-1, 1))
+
+# sales => 고객별 현재값/최대값 으로 비율 값으로 계산
 # data['sales'] = scaler.fit_transform(data['sales'].values.reshape(-1, 1))
+
+# days => 202401 기준 으로 (거래일 - 202401) / (현재 - 202401) 으로 비율 값으로 계산
 # data['days'] = scaler.fit_transform(data['days'].values.reshape(-1, 1))
 
 pivot_df = data.pivot_table(index='companyCode', columns='rn', values=['frequency', 'sales', 'days']).fillna(0)
@@ -127,6 +130,3 @@ print(f'3번 잔류 고객 => 예측값: {y_pred_proba3}')
 print(f'4번 잔류 고객 => 예측값: {y_pred_proba4}')
 print(f'5번 이탈 고객 => 예측값: {y_pred_proba5}')
 
-# 정확도 확인
-# from sklearn.metrics import classification_report
-# print(classification_report(y_test, y_pred))
