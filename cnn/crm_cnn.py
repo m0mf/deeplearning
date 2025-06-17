@@ -3,6 +3,8 @@ import pandas as pd
 from keras.src.layers import ELU
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import os
+import joblib
 
 
 # 최근 6개월 실적, 거래 횟수 데이터
@@ -82,6 +84,13 @@ model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.2, cal
 # 평가
 loss, acc = model.evaluate(X_test, y_test)
 print(f"테스트 정확도: {acc:.2f}")
+
+
+
+# 7. 모델 저장
+os.makedirs('D:/workspace/arches/test/cnn', exist_ok=True)
+joblib.dump(scaler, 'D:/workspace/arches/test/cnn/scaler.pkl')
+model.save('D:/workspace/arches/test/cnn/cnn_model.h5')
 
 
 # 4. 예측
